@@ -1,3 +1,5 @@
+
+//koo jing yik
 package boundary;
 
 import java.util.Scanner;
@@ -10,6 +12,8 @@ import java.time.format.DateTimeFormatter;
 import ADT.ArrayQueue;
 import ADT.QueueInterface;
 import control.PatientControl;
+import Entity.WalkInQueueEntry;
+
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -20,17 +24,22 @@ import javax.imageio.ImageIO;
 public class PatientUI {
     private Scanner scanner = new Scanner(System.in);
     private ArrayQueue<String> patientQueue;
+    private MapInterface<String, WalkInQueueEntry> walkInQueueMap = new HashMap<>();
+    public MapInterface<String, WalkInQueueEntry> getWalkInQueueMap() {
+    return walkInQueueMap;
+}
 
 
+    
 // ---------------- Patient Managemnt Menu ----------------
  public int getPatientManagementMenu() {
     int choice = -1;
 
     do {
         System.out.println("\nPATIENT MANAGEMENT MENU\n------------------------");
-        System.out.println("1. Register new patient");
-        System.out.println("2. Edit patient record");
-        System.out.println("3. Walk-in patient queue");
+        System.out.println("1. Register New Patient");
+        System.out.println("2. Edit Patient Record");
+        System.out.println("3. Walk-in Patient Queue");
         System.out.println("4. Payment");
         System.out.println("0. Quit");
         System.out.print("Enter choice: ");
@@ -61,11 +70,11 @@ public int getPatientRecordMenu() {
 
     do {
         System.out.println("\nPATIENT RECORD MENU\n-------------------");
-        System.out.println("1. View patient record");
-        System.out.println("2. Search patient record");
-        System.out.println("3. Update patient record");
-        System.out.println("4. Remove patient record");
-        System.out.println("0. Back to previous menu");
+        System.out.println("1. View Patient Report");
+        System.out.println("2. Search Patient Record");
+        System.out.println("3. Update Patient Record");
+        System.out.println("4. Delete Patient Record");
+        System.out.println("0. Back To Previous Menu");
         System.out.print("Enter choice: ");
 
         // Validate non-integer input
@@ -87,297 +96,6 @@ public int getPatientRecordMenu() {
     return choice;
 }
 
-
-// ---------------- Update Patient Menu ----------------
-
-public int getPatientUpdateMenu() {
-    int choice = -1;
-
-    do {
-        System.out.println("\nUPDATE PATIENT RECORD MENU\n-------------------------");
-        System.out.println("1. Patient Name");
-        System.out.println("2. IC Number");
-        System.out.println("3. Gender");
-        System.out.println("4. Age");
-        System.out.println("5. Blood Type");
-        System.out.println("6. Date of Birth");
-        System.out.println("7. Contact Number");
-        System.out.println("8. Emergency Number");
-        System.out.println("9. Medical History");
-        System.out.println("10. Address");
-        System.out.println("11. Email");
-        System.out.println("0. Back to previous menu");
-        System.out.print("Select field to update: ");
-
-        if (!scanner.hasNextInt()) {
-            System.out.println("Invalid input. Please enter a number between 0 and 11.");
-            scanner.nextLine(); // clear invalid input
-            continue;           // restart loop, redraw menu
-        }
-
-        choice = scanner.nextInt();
-        scanner.nextLine(); // consume newline
-
-        if (choice < 0 || choice > 11) {
-            System.out.println("Invalid choice. Please enter a number between 0 and 11.");
-        }
-
-    } while (choice < 0 || choice > 11);
-
-    return choice;
-}
-
-
-// ---------------- Walk in PAtient Queue Entry Menu ----------------
-public int getQueueEntryMenu() {
-    int choice = -1;
-
-    do {
-        System.out.println("\nWALK-IN PATIENT QUEUE MENU\n-------------------------");
-        System.out.println("1. Add Queue Entry");
-        System.out.println("2. View Current Queue Entry");
-        System.out.println("3. Delete Queue Entry");
-        System.out.println("0. Return to Previous Menu");
-        System.out.print("Enter choice: ");
-
-        if (!scanner.hasNextInt()) {
-            System.out.println("Invalid input. Please enter a number between 0 and 3.");
-            scanner.nextLine(); // clear invalid input
-            continue;           // restart loop and redraw menu
-        }
-
-        choice = scanner.nextInt();
-        scanner.nextLine(); // consume newline
-
-        if (choice < 0 || choice > 3) {
-            System.out.println("Invalid choice. Please enter a number between 0 and 3.");
-        }
-
-    } while (choice < 0 || choice > 3);
-
-    return choice;
-}
-
-// ------------------ Walk in Queue Report ------------------ //
-// queueList is now Queue<String>, patientMap is MapInterface<String, Patient>
-public String generateQueueReport(QueueInterface<Patient> patientQueue, MapInterface<String, Patient> patientMap) {
-    StringBuilder sb = new StringBuilder();
-    DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-    int lineLength = 100; // width for centering
-    String stars = "*".repeat(lineLength);
-    String dashes = "-".repeat(lineLength);
-
-    // Helper to center text
-    java.util.function.Function<String, String> center = text -> {
-        int padding = (lineLength - text.length()) / 2;
-        return " ".repeat(Math.max(0, padding)) + text;
-    };
-
-    // ---------------- Header ----------------
-    sb.append(stars).append("\n");
-    sb.append(center.apply("TUNKU ABDUL RAHMAN UNIVERSITY OF MANAGEMENT AND TECHNOLOGY")).append("\n");
-    sb.append(center.apply("CLINIC MANAGEMENT SYSTEM")).append("\n");
-    sb.append(center.apply("PATIENTS WALK-IN QUEUE REPORT")).append("\n");
-    sb.append(stars).append("\n");
-    sb.append("Generated at: ").append(java.time.LocalDateTime.now().format(dtf)).append("\n\n");
-    sb.append("PQ01 = Patient walk-in Queue Report\n");
-    sb.append(dashes).append("\n");
-    // ---------------- Table Header ----------------
-    sb.append(String.format("%-5s | %-10s | %-6s | %-10s\n", "No", "Patient ID", "Gender", "Blood Type"));
-    sb.append(dashes).append("\n");
-
-    // ---------------- Table Rows ----------------
-    if (patientQueue == null || patientQueue.isEmpty()) {
-        sb.append(center.apply("No queue entries found")).append("\n");
-    } else {
-        int no = 1;
-        for (int i=0; i<patientQueue.size(); i++) {
-            Patient p = patientQueue.get(i);
-            if (p != null) {
-                sb.append(String.format("%-5d | %-10s | %-6s | %-10s\n",
-                        no++, p.getPatientId(), p.getGender(), p.getBloodType()));
-            }
-        }
-    }
-
-    sb.append(dashes).append("\n");
-    sb.append("Total queue entries: ").append(patientQueue == null ? 0 : patientQueue.size()).append("\n");
-    sb.append(stars).append("\n");
-    sb.append(center.apply("END OF REPORT")).append("\n");
-    sb.append(stars).append("\n");
-
-    return sb.toString();
-}
-
-// ---------------- Display ---------------- //
-public void displayQueueReport(String report) {
-    System.out.println(report);
-}
-
-// ---------------- Export as PNG ---------------- //
-public void exportQueueReportAsPNG(String reportContent, Dimension frameSize) {
-    try {
-        String[] lines = reportContent.split("\n");
-
-        int width = frameSize.width - 20; // leave padding
-        int lineHeight = 25;
-        int height = Math.max(frameSize.height, lineHeight * (lines.length + 1));
-
-        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g = image.createGraphics();
-
-        g.setColor(Color.WHITE);
-        g.fillRect(0, 0, width, height);
-
-        g.setColor(Color.BLACK);
-        g.setFont(new Font("Monospaced", Font.PLAIN, 16));
-
-        int y = lineHeight;
-        for (String line : lines) {
-            g.drawString(line, 10, y);
-            y += lineHeight;
-        }
-
-        g.dispose();
-
-        File file = new File("QueueReport.png");
-        ImageIO.write(image, "png", file);
-        System.out.println("Queue report saved as " + file.getAbsolutePath());
-
-    } catch (Exception e) {
-        System.out.println("Error generating PNG: " + e.getMessage());
-    }
-}
-
-// ------------------ Payment Menu ------------------ //
-public int getPaymentMenu() {
-    int choice = -1;
-
-    do {
-        System.out.println("\n--- Payment Menu ---");
-        System.out.println("1. Generate Receipt");
-        System.out.println("2. Payment History");
-        System.out.println("3. Clear Payment");
-        System.out.println("0. Return to Previous Menu");
-        System.out.print("Enter choice: ");
-
-        String input = scanner.nextLine().trim();
-
-        try {
-            choice = Integer.parseInt(input);
-        } catch (NumberFormatException e) {
-            System.out.println("Invalid input. Enter digits only.");
-            continue; // redraw menu
-        }
-
-        if (choice < 0 || choice > 3) {
-            System.out.println("Invalid choice. Please enter a number between 0 and 3.");
-            choice = -1; // force loop again
-        }
-
-    } while (choice < 0 || choice > 3);
-
-    return choice;
-}   
-
-// ---------------- Generate Payment History Report ---------------- //
-public String generatePaymentHistoryReport(MapInterface<String, Payment> paymentMap,
-                                           MapInterface<String, Patient> patientMap) {
-    StringBuilder sb = new StringBuilder();
-    int lineLength = 100;
-    String stars = "*".repeat(lineLength);
-    String dashes = "-".repeat(lineLength);
-    DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-
-    java.util.function.Function<String, String> center = text -> {
-        int padding = (lineLength - text.length()) / 2;
-        return " ".repeat(Math.max(0, padding)) + text;
-    };
-
-    // ---------------- Header ----------------
-    sb.append(stars).append("\n");
-    sb.append(center.apply("TUNKU ABDUL RAHMAN UNIVERSITY OF MANAGEMENT AND TECHNOLOGY")).append("\n");
-    sb.append(center.apply("CLINIC MANAGEMENT SYSTEM")).append("\n");
-    sb.append(center.apply("PATIENT PAYMENT HISTORY REPORT")).append("\n");
-    sb.append(stars).append("\n");
-    sb.append("Generated at: ").append(java.time.LocalDateTime.now().format(dtf)).append("\n\n");
-    sb.append("PH01 = Patient Payment History Report\n");
-    sb.append(dashes).append("\n");
-
-    // ---------------- Table Header ----------------
-    sb.append(String.format("%-12s | %-10s | %-15s | %-10s\n",
-            "Payment ID", "Patient ID", "Payment Method", "Payment Amount"));
-    sb.append(dashes).append("\n");
-
-    // ---------------- Table Rows ----------------
-    MapEntry<String, Payment>[] entries = paymentMap.getTable();
-    for (MapEntry<String, Payment> e : entries) {
-        if (e != null && !e.isRemoved()) {
-            Payment payment = e.getValue();
-            Patient patient = patientMap.get(payment.getPatientId());
-            if (patient != null) {
-                sb.append(String.format("%-12s | %-10s | %-15s | %-10.2f\n",
-                        payment.getPaymentId(),
-                        patient.getPatientId(),
-                        payment.getPaymentMethod(),
-                        payment.getAmount()));
-            }
-        }
-    }
-
-    sb.append(dashes).append("\n");
-    sb.append("Total payments: ").append(paymentMap.size()).append("\n");
-    sb.append(stars).append("\n");
-    sb.append(center.apply("END OF REPORT")).append("\n");
-    sb.append(stars).append("\n");
-
-    return sb.toString();
-}
-
-    // ---------------- Display ---------------- //
-    public void displayPaymentHistoryReport(String report) {
-        System.out.println(report);
-    }
-
-    public void displayPaymentReceipt(String receipt) {
-        System.out.println("\n--- Payment Receipt ---");
-        System.out.println(receipt);
-    }
-
-    // ---------------- Export as PNG ---------------- //
-    public void exportPaymentHistoryAsPNG(String reportContent, Dimension frameSize) {
-        try {
-            String[] lines = reportContent.split("\n");
-            int width = frameSize.width - 20; // leave padding
-            int lineHeight = 25;
-            int height = Math.max(frameSize.height, lineHeight * (lines.length + 1));
-
-            BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-            Graphics2D g = image.createGraphics();
-
-            g.setColor(Color.WHITE);
-            g.fillRect(0, 0, width, height);
-
-            g.setColor(Color.BLACK);
-            g.setFont(new Font("Monospaced", Font.PLAIN, 16));
-
-            int y = lineHeight;
-            for (String line : lines) {
-                g.drawString(line, 10, y);
-                y += lineHeight;
-            }
-
-            g.dispose();
-
-            File file = new File("PaymentHistoryReport.png");
-            ImageIO.write(image, "png", file);
-            System.out.println("Payment history report saved as " + file.getAbsolutePath());
-
-        } catch (Exception e) {
-            System.out.println("Error generating PNG: " + e.getMessage());
-        }
-    }
-    
     // --------------- Input Patient Registeration Form Module ---------------- //
     public String inputPatientName() {
         System.out.print("Enter patient name: ");
@@ -463,6 +181,22 @@ public String generatePaymentHistoryReport(MapInterface<String, Payment> payment
         System.out.println("\nPatient Details\n---------------");
         System.out.println(patient.toString());
     }
+    
+    // ---------------- Helper: Wrap text into fixed-width blocks ----------------
+    private String[] wrapText(String text, int width) {
+    if (text == null) return new String[]{""};
+    text = text.trim();
+    int len = text.length();
+    int lines = (int) Math.ceil((double) len / width);
+    String[] result = new String[lines];
+    for (int i = 0; i < lines; i++) {
+        int start = i * width;
+        int end = Math.min(start + width, len);
+        result[i] = text.substring(start, end);
+    }
+    return result;
+}
+
 
     // ---------------- Patients Report Output ---------------- //
      public String generatePatientReport(MapInterface<String, Patient> patientMap) {
@@ -481,7 +215,7 @@ public String generatePaymentHistoryReport(MapInterface<String, Payment> payment
         sb.append(stars).append("\n");
         sb.append(center.apply("TUNKU ABDUL RAHMAN UNIVERSITY OF MANAGEMENT AND TECHNOLOGY")).append("\n");
         sb.append(center.apply("CLINIC MANAGEMENT SYSTEM")).append("\n");
-        sb.append(center.apply("PATIENTS REPORT 2025")).append("\n");
+        sb.append(center.apply("PATIENTS REPORT")).append("\n");
         sb.append(stars).append("\n");
         sb.append("Generated at: ").append(java.time.LocalDateTime.now().format(dtf)).append("\n\n");
         sb.append("PC01 = Patient Registration Report\n");
@@ -493,8 +227,8 @@ public String generatePaymentHistoryReport(MapInterface<String, Payment> payment
             "Patient ID", "Patient Name", "IC Number", "Gender", "Age",
             "BloodType", "DateOfBirth", "ContactNo", "EmergencyNo", "MedicalHistory", "Address", "Email"));
         sb.append(dashes).append("\n");
-
-        // Table rows
+                
+        // ---------------- Table rows ----------------
         boolean found = false;
         int count = 0;
         MapEntry<String, Patient>[] entries = patientMap.getTable();
@@ -502,25 +236,52 @@ public String generatePaymentHistoryReport(MapInterface<String, Payment> payment
         for (MapEntry<String, Patient> e : entries) {
             if (e != null && !e.isRemoved()) {
                 Patient p = e.getValue();
-                sb.append(String.format(
-                    " %-10s | %-18s | %-12s | %-6s | %-3d | %-9s | %-11s | %-11s | %-11s | %-19s | %-19s | %-13s \n",
-                    p.getPatientId(),
-                    p.getName(),
-                    p.getICNo(),
-                    p.getGender(),
-                    p.getAge(),
-                    p.getBloodType(),
-                    p.getDateOfBirth(),
-                    p.getContactNo(),
-                    p.getEmergencyNo(),
-                    p.getMedicalHistory(),
-                    p.getAddress(),
-                    p.getEmail()));
-                found = true;
-                count++;
-            }
+
+        // Wrap each column
+        String[][] cols = {
+            wrapText(p.getPatientId(), 10),
+            wrapText(p.getName(), 18),
+            wrapText(p.getICNo(), 12),
+            wrapText(p.getGender(), 6),
+            wrapText(String.valueOf(p.getAge()), 3),
+            wrapText(p.getBloodType(), 9),
+            wrapText(p.getDateOfBirth(), 10),
+            wrapText(p.getContactNo(), 11),
+            wrapText(p.getEmergencyNo(), 11),
+            wrapText(p.getMedicalHistory(), 19),
+            wrapText(p.getAddress(), 19),
+            wrapText(p.getEmail(), 13)
+        };
+
+        // Find max rows needed for this patient
+        int maxLines = 1;
+        for (String[] col : cols) {
+            if (col.length > maxLines) maxLines = col.length;
         }
 
+        // Print row line by line
+        for (int i = 0; i < maxLines; i++) {
+            sb.append(String.format(
+                " %-10s | %-18s | %-12s | %-6s | %-3s | %-9s | %-11s | %-11s | %-11s | %-19s | %-19s | %-13s \n",
+                i < cols[0].length ? cols[0][i] : "",
+                i < cols[1].length ? cols[1][i] : "",
+                i < cols[2].length ? cols[2][i] : "",
+                i < cols[3].length ? cols[3][i] : "",
+                i < cols[4].length ? cols[4][i] : "",
+                i < cols[5].length ? cols[5][i] : "",
+                i < cols[6].length ? cols[6][i] : "",
+                i < cols[7].length ? cols[7][i] : "",
+                i < cols[8].length ? cols[8][i] : "",
+                i < cols[9].length ? cols[9][i] : "",
+                i < cols[10].length ? cols[10][i] : "",
+                i < cols[11].length ? cols[11][i] : ""
+            ));
+        }
+
+        found = true;
+        count++;
+    }
+}
         if (!found) {
             sb.append(" No patient records found.").append(" ".repeat(151)).append("\n");
         }
@@ -541,7 +302,7 @@ public String generatePaymentHistoryReport(MapInterface<String, Payment> payment
         System.out.println(report);
     }
 
-    // ---------------- Export as PNG ---------------- //
+    // ---------------- Export as report ---------------- //
     public void exportReportAsPNG(String reportContent) {
         try {
             String[] lines = reportContent.split("\n");
@@ -586,7 +347,7 @@ public String generatePaymentHistoryReport(MapInterface<String, Payment> payment
 
         // Validate ID exists in patientMap
         if (PatientControl.getPatientMap().contains(patientId)) break;
-        System.out.println("Patient not found. Please enter a valid Patient ID.");
+        System.out.println("Patient ID not found. Please enter a valid Patient ID.");
     }
     return patientId;
 }
@@ -614,10 +375,316 @@ public String generatePaymentHistoryReport(MapInterface<String, Payment> payment
 
  
     // ------------------ Generic Messages ------------------ //
-public void displayMessage(String msg) {
-    System.out.println(msg);
+    public void displayMessage(String msg) {
+        System.out.println(msg);
 } 
+
+// ---------------- Update Patient Menu ----------------
+    public int getPatientUpdateMenu() {
+        int choice = -1;
+        do {
+        System.out.println("\nUPDATE PATIENT RECORD MENU\n-------------------------");
+        System.out.println("1. Patient Name");
+        System.out.println("2. IC Number");
+        System.out.println("3. Gender");
+        System.out.println("4. Age");
+        System.out.println("5. Blood Type");
+        System.out.println("6. Date of Birth");
+        System.out.println("7. Contact Number");
+        System.out.println("8. Emergency Number");
+        System.out.println("9. Medical History");
+        System.out.println("10. Address");
+        System.out.println("11. Email");
+        System.out.println("0. Back to previous menu");
+        System.out.print("Select field to update: ");
+
+        if (!scanner.hasNextInt()) {
+            System.out.println("Invalid input. Please enter a number between 0 and 11.");
+            scanner.nextLine(); // clear invalid input
+            continue;           // restart loop, redraw menu
+        }
+
+        choice = scanner.nextInt();
+        scanner.nextLine(); // consume newline
+
+        if (choice < 0 || choice > 11) {
+            System.out.println("Invalid choice. Please enter a number between 0 and 11.");
+        }
+
+    } while (choice < 0 || choice > 11);
+
+    return choice;
 }
+
+
+// ---------------- Walk in Patient Queue Entry Menu ----------------
+public int getQueueEntryMenu() {
+    int choice = -1;
+
+    do {
+        System.out.println("\nPATIENTS WALK-IN QUEUE ENTRY MENU\n-------------------------");
+        System.out.println("1. Add Queue Entry");
+        System.out.println("2. View Queue Report");
+        System.out.println("3. Delete Queue Entry");
+        System.out.println("0. Return to Previous Menu");
+        System.out.print("Enter choice: ");
+
+        if (!scanner.hasNextInt()) {
+            System.out.println("Invalid input. Please enter a number between 0 and 3.");
+            scanner.nextLine(); // clear invalid input
+            continue;           // restart loop and redraw menu
+        }
+
+        choice = scanner.nextInt();
+        scanner.nextLine(); // consume newline
+
+        if (choice < 0 || choice > 3) {
+            System.out.println("Invalid choice. Please enter a number between 0 and 3.");
+        }
+
+    } while (choice < 0 || choice > 3);
+
+    return choice;
+}
+
+
+    // ------------------ Walk in Queue Report ------------------ //
+    // queueList is now Queue<String>, patientMap is MapInterface<String, Patient>
+    public String generateQueueReport(QueueInterface<Patient> patientQueue, MapInterface<String, WalkInQueueEntry> walkInQueueMap) {
+    StringBuilder sb = new StringBuilder();
+    DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    int lineLength = 120;
+    String stars = "*".repeat(lineLength);
+    String dashes = "-".repeat(lineLength);
+
+    java.util.function.Function<String, String> center = text -> {
+        int padding = (lineLength - text.length()) / 2;
+        return " ".repeat(Math.max(0, padding)) + text;
+    };
+
+    // ---------------- Header ----------------
+    sb.append(stars).append("\n");
+    sb.append(center.apply("TUNKU ABDUL RAHMAN UNIVERSITY OF MANAGEMENT AND TECHNOLOGY")).append("\n");
+    sb.append(center.apply("CLINIC MANAGEMENT SYSTEM")).append("\n");
+    sb.append(center.apply("PATIENTS WALK-IN QUEUE ENTRY REPORT")).append("\n");
+    sb.append(stars).append("\n");
+    sb.append("Generated at: ").append(java.time.LocalDateTime.now().format(dtf)).append("\n\n");
+    sb.append("PQ01 = Patient walk-in Queue Entry Report\n");
+    sb.append(dashes).append("\n");
+
+    // ---------------- Table Header ----------------
+    sb.append(String.format("%-5s | %-12s | %-25s | %-10s | %-20s | %-30s\n",
+            "No", "Patient ID", "Patient Name", "Room No", "Doctor", "Purpose of Visit"));
+    sb.append(dashes).append("\n");
+
+    // ---------------- Table Rows ----------------
+    if (patientQueue == null || patientQueue.isEmpty()) {
+        sb.append(center.apply("No queue entries found")).append("\n");
+    } else {
+        int no = 1;
+        for (int i = 0; i < patientQueue.size(); i++) {
+            Patient patient = patientQueue.get(i);
+              
+            // Get the entry from map
+            WalkInQueueEntry entry = walkInQueueMap.get(patient.getPatientId());
+
+            if (entry != null) {
+                sb.append(String.format("%-5d | %-12s | %-25s | %-10s | %-20s | %-30s\n",
+                        no++,
+                        patient.getPatientId(),
+                        patient.getName(),
+                        entry.getRoomNumber(),
+                        entry.getDoctorName(),
+                        entry.getPurposeOfVisit()));
+            } else {
+                sb.append(String.format("%-5d | %-12s | %-25s | %-10s | %-20s | %-30s\n",
+                        no++,
+                        patient.getPatientId(),
+                        patient.getName(),
+                        "-", "-", "-"));
+            }
+        }
+    }
+
+    sb.append(dashes).append("\n");
+    sb.append("Total queue entries: ").append(patientQueue == null ? 0 : patientQueue.size()).append("\n");
+    sb.append(stars).append("\n");
+    sb.append(center.apply("END OF REPORT")).append("\n");
+    sb.append(stars).append("\n");
+
+    return sb.toString();
+}
+
+// ---------------- Display ---------------- //
+public void displayQueueReport(String report) {
+    System.out.println(report);
+}
+
+// ---------------- Export as PNG ---------------- //
+public void exportQueueReportAsPNG(String reportContent, Dimension frameSize) {
+    try {
+        String[] lines = reportContent.split("\n");
+
+        int width = frameSize.width - 20; // leave padding
+        int lineHeight = 25;
+        int height = Math.max(frameSize.height, lineHeight * (lines.length + 1));
+
+        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = image.createGraphics();
+
+        g.setColor(Color.WHITE);
+        g.fillRect(0, 0, width, height);
+
+        g.setColor(Color.BLACK);
+        g.setFont(new Font("Monospaced", Font.PLAIN, 16));
+
+        int y = lineHeight;
+        for (String line : lines) {
+            g.drawString(line, 10, y);
+            y += lineHeight;
+        }
+
+        g.dispose();
+
+        File file = new File("QueueReport.png");
+        ImageIO.write(image, "png", file);
+        System.out.println("Queue report saved as " + file.getAbsolutePath());
+
+    } catch (Exception e) {
+        System.out.println("Error generating report: " + e.getMessage());
+    }
+}
+
+// ------------------ Payment Menu ------------------ //
+public int getPaymentMenu() {
+    int choice = -1;
+
+    do {
+        System.out.println("\n--- Payment Menu ---");
+        System.out.println("1. Generate Receipt");
+        System.out.println("2. Payment Report");
+        System.out.println("3. Remove Payment");
+        System.out.println("0. Return To Previous Menu");
+        System.out.print("Enter choice: ");
+
+        String input = scanner.nextLine().trim();
+
+        try {
+            choice = Integer.parseInt(input);
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid input. Enter digits only.");
+            continue; // redraw menu
+        }
+
+        if (choice < 0 || choice > 3) {
+            System.out.println("Invalid choice. Please enter a number between 0 and 3.");
+            choice = -1; // force loop again
+        }
+
+    } while (choice < 0 || choice > 3);
+
+    return choice;
+}   
+
+// ---------------- Generate Payment History Report ---------------- //
+public String generatePaymentHistoryReport(MapInterface<String, Payment> paymentMap,
+                                           MapInterface<String, Patient> patientMap) {
+    StringBuilder sb = new StringBuilder();
+    int lineLength = 100;
+    String stars = "*".repeat(lineLength);
+    String dashes = "-".repeat(lineLength);
+    DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+    java.util.function.Function<String, String> center = text -> {
+        int padding = (lineLength - text.length()) / 2;
+        return " ".repeat(Math.max(0, padding)) + text;
+    };
+
+    // ---------------- Header ----------------
+    sb.append(stars).append("\n");
+    sb.append(center.apply("TUNKU ABDUL RAHMAN UNIVERSITY OF MANAGEMENT AND TECHNOLOGY")).append("\n");
+    sb.append(center.apply("CLINIC MANAGEMENT SYSTEM")).append("\n");
+    sb.append(center.apply("PATIENT PAYMENT HISTORY REPORT")).append("\n");
+    sb.append(stars).append("\n");
+    sb.append("Generated at: ").append(java.time.LocalDateTime.now().format(dtf)).append("\n\n");
+    sb.append("PH01 = Patient Payment History Report\n");
+    sb.append(dashes).append("\n");
+
+    // ---------------- Table Header ----------------
+    sb.append(String.format("%-12s | %-10s | %-15s | %-10s\n",
+            "Payment ID", "Patient ID", "Payment Method", "Payment Amount"));
+    sb.append(dashes).append("\n");
+
+    // ---------------- Table Rows ----------------
+    MapEntry<String, Payment>[] entries = paymentMap.getTable();
+    for (MapEntry<String, Payment> e : entries) {
+        if (e != null && !e.isRemoved()) {
+            Payment payment = e.getValue();
+            Patient patient = patientMap.get(payment.getPatientId());
+            if (patient != null) {
+                sb.append(String.format("%-12s | %-10s | %-15s | %-10.2f\n",
+                        payment.getPaymentId(),
+                        patient.getPatientId(),
+                        payment.getPaymentMethod(),
+                        payment.getAmount()));
+            }
+        }
+    }
+
+    sb.append(dashes).append("\n");
+    sb.append("Total payments: ").append(paymentMap.size()).append("\n");
+    sb.append(stars).append("\n");
+    sb.append(center.apply("END OF REPORT")).append("\n");
+    sb.append(stars).append("\n");
+
+    return sb.toString();
+}
+
+    // ---------------- Display ---------------- //
+    public void displayPaymentHistoryReport(String report) {
+        System.out.println(report);
+    }
+
+    public void displayPaymentReceipt(String receipt) {
+        System.out.println("\n--- Payment Receipt ---");
+        System.out.println(receipt);
+    }
+
+    // ---------------- Export as report ---------------- //
+    public void exportPaymentHistoryAsPNG(String reportContent, Dimension frameSize) {
+        try {
+            String[] lines = reportContent.split("\n");
+            int width = frameSize.width - 20; // leave padding
+            int lineHeight = 25;
+            int height = Math.max(frameSize.height, lineHeight * (lines.length + 1));
+
+            BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g = image.createGraphics();
+
+            g.setColor(Color.WHITE);
+            g.fillRect(0, 0, width, height);
+
+            g.setColor(Color.BLACK);
+            g.setFont(new Font("Monospaced", Font.PLAIN, 16));
+
+            int y = lineHeight;
+            for (String line : lines) {
+                g.drawString(line, 10, y);
+                y += lineHeight;
+            }
+
+            g.dispose();
+
+            File file = new File("PaymentHistoryReport.png");
+            ImageIO.write(image, "png", file);
+            System.out.println("Payment history report saved as " + file.getAbsolutePath());
+
+        } catch (Exception e) {
+            System.out.println("Error generating PNG: " + e.getMessage());
+        }
+    }
+}
+
 
 
 

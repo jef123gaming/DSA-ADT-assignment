@@ -829,7 +829,7 @@ public void addQueueEntry() {
         return;
     }
 
-    // 🚫 Prevent duplicate in queue
+    //  Prevent duplicate in queue
     if (walkInQueueMap.contains(id)) {
         System.out.println("Patient " + id + " is already in the queue.");
         return;

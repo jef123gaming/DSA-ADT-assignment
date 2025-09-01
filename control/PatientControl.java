@@ -8,7 +8,6 @@ import boundary.PatientUI;
 import ADT.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import Entity.Appointment;
 import Entity.Payment;
 import boundary.MedicalCard;
 import dao.GenericDAO;
@@ -16,20 +15,22 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import javax.imageio.ImageIO;
+import Entity.WalkInQueueEntry;
 
 public class PatientControl {
     private static MapInterface<String, Payment> paymentMap = new HashMap<>();
-    private static MapInterface<String, Appointment> appointmentMap = new HashMap<>();
     private static MapInterface<String, Patient> patientMap;
     private static QueueInterface<Patient> patientQueue; // store Patients in queue
+    private static MapInterface<String, WalkInQueueEntry> walkInQueueMap;
     private PatientUI patientUI;
     private Scanner scanner = new Scanner(System.in);
     private int paymentCounter = 1;
+    // Data files
     private static String patientHashMapFile = "data/patientHashMap.dat";
     private static String patientQueueFile = "data/patientQueue.dat";
     private static String patientTextFile = "data/patients.txt";
-        
-    // Existing constructor
+   
+    // ------------------ Constructor ------------------ //
     public PatientControl(PatientUI patientUI) {
         this.patientUI = patientUI;
 
@@ -38,6 +39,7 @@ public class PatientControl {
         if (patientMap == null || patientQueue == null) {
             patientMap = new HashMap<>(30);
             patientQueue = new ArrayQueue<>(30);
+            walkInQueueMap = new HashMap<>(30); 
             if (GenericDAO.loadPatientsFromTextFile(patientTextFile, patientMap, patientQueue)){
                 GenericDAO.saveToFile(patientMap, patientHashMapFile);
                 GenericDAO.saveToFile(patientQueue, patientQueueFile);
@@ -47,6 +49,7 @@ public class PatientControl {
         }
     }  
     
+    // ------------------ Getters ------------------ //
     public static MapInterface<String,Patient> getPatientMap(){
         return patientMap;
     }
@@ -99,7 +102,6 @@ public class PatientControl {
         COURSE_MAP.add("MARINESCIENCE", "MSC");
     }
     
-
     public int getValidatedMainMenuChoice() {
     int choice = -1;
     while (true) {
@@ -186,7 +188,7 @@ public void registerNewPatient() {
     Scanner sc = new Scanner(System.in);
     String choice;
     while (true) {
-        System.out.print("\nDo you want to generate the patient ID card? (Y/N): ");
+        System.out.print("\nDo you want to generate the TARUMT Medical Card? (Y/N): ");
         choice = sc.nextLine().trim().toUpperCase();
      if (choice.equals("Y")) {
       // Open the MedicalCard JFrame with patient info
@@ -612,7 +614,7 @@ private String inputValidAddress( ) {
         patientUI.displayPatientReport(fullReport);
 
         while (true) {
-            System.out.print("Do you want to download this report as PNG? (Y/N): ");
+            System.out.print("Do you want to download patient report ? (Y/N): ");
             String input = scanner.nextLine().trim().toLowerCase();
 
             if (input.equals("y") || input.equals("yes")) {
@@ -659,7 +661,7 @@ private String inputValidAddress( ) {
             System.out.println("Report saved as " + file.getAbsolutePath());
 
         } catch (Exception e) {
-            System.out.println("Error generating PNG: " + e.getMessage());
+            System.out.println("Error generating report: " + e.getMessage());
         }
     }
 
@@ -678,7 +680,7 @@ private String inputValidAddress( ) {
     public void updatePatientField(String patientId) {
         Patient patient = patientMap.get(patientId);
         if (patient == null) {
-            System.out.println("Patient not found.");
+            System.out.println("Patient ID not found.");
             return;
         }
 
@@ -733,7 +735,7 @@ private String inputValidAddress( ) {
             }
             if (!done) {
                 GenericDAO.saveToFile(patientMap, patientHashMapFile);
-                System.out.println("Field updated successfully.");
+                System.out.println("Updated successfully.");
             }
         }
     }
@@ -746,7 +748,7 @@ private String inputValidAddress( ) {
             System.out.println("Patient deleted successfully.");
             return true;
         }
-        System.out.println("Patient not found.");
+        System.out.println("Patient ID not found.");
         return false;
     }
 
@@ -761,11 +763,11 @@ private String inputValidAddress( ) {
                     addQueueEntry();
                     break;
                 case 2:
-                    viewQueueEntriesReport();
+                    viewQueueEntries();
                     break;
                 case 3:
                     deleteQueueEntry();
-                    break;
+                    break;              
                 case 0:
                     queueExit = true;
                     break;
@@ -775,104 +777,144 @@ private String inputValidAddress( ) {
         }
     }
 
-    // ------------------ View Queue Entries Report Module  ------------------ //
-    public void viewQueueEntries() {
-        if (patientQueue.isEmpty()) {
-            System.out.println("The queue is empty.");
-            return;
-        }
-
-        System.out.println("\n--- Current Queue Entries ---");
-        System.out.printf("%-5s %-15s\n", "No", "Patient ID");
-        System.out.println("==============================");
-
-        int index = 1;
-        for (int i = 0; i < patientQueue.size(); i++) {
-            System.out.printf("%-5d %-15s\n", index++, patientQueue.get(i).getPatientId());
-        }
+    // ------------------ View Current Queue Entries List Module  ------------------ //
+public void viewQueueEntries() {
+    // Check if the queue is empty first
+    if (patientQueue == null || patientQueue.isEmpty()) {
+        System.out.println("The queue is empty.");
+        return;
     }
+
+    // Use generateQueueReport to build the report string
+    String report = patientUI.generateQueueReport(patientQueue, walkInQueueMap);
+
+    // Display the report
+    patientUI.displayQueueReport(report);
     
-    private void viewQueueEntriesReport() {
-        String fullReport = patientUI.generateQueueReport(patientQueue, patientMap); // pass queue + map
-        patientUI.displayQueueReport(fullReport);
+    while (true) {
+        System.out.print("Do you want to download this queue report ? (Y/N): ");
+        String input = scanner.nextLine().trim().toLowerCase();
 
-        while (true) {
-            System.out.print("Do you want to download this queue report as PNG? (Y/N): ");
-            String input = scanner.nextLine().trim().toLowerCase();
-
-            if (input.equals("y") || input.equals("yes")) {
-                System.out.println("Downloading report...");
-                patientUI.exportQueueReportAsPNG(fullReport, new Dimension(1200, 800));
-                break;
-            } else if (input.equals("n") || input.equals("no")) {
-                System.out.println("Returning to previous menu...");
-                break;
-            } else {
-                System.out.println("Invalid input. Please enter Y/Yes or N/No.");
-            }
+        if (input.equals("y") || input.equals("yes")) {
+            System.out.println("Downloading report...");
+            // Use 'report' instead of 'fullReport'
+            patientUI.exportQueueReportAsPNG(report, new Dimension(1200, 800));
+            break;
+        } else if (input.equals("n") || input.equals("no")) {
+            System.out.println("Returning to previous menu...");
+            break;
+        } else {
+            System.out.println("Invalid input. Please enter Y/Yes or N/No.");
         }
     }
-
+}
     // ------------------ add Queue Entries Module  ------------------ //
-    public void addQueueEntry() {
-        Scanner scanner = new Scanner(System.in);
-        System.out.print("Enter Patient ID to add to queue (Format: YYCCCXXXX): ");
-        String id = scanner.nextLine().trim().toUpperCase();
+    // ------------------ add Queue Entries Module ------------------ //
+public void addQueueEntry() {
+    Scanner scanner = new Scanner(System.in);
 
-        // Validate format: 2 digits + 3 letters + 4 digits
-        if (!id.matches("\\d{2}[A-Z]{3}\\d{4}")) {
-            System.out.println("Invalid Patient ID format. Must be YYCCCXXXX.");
-            return;
-        }
+    // Enter Patient ID
+    System.out.print("Enter Patient ID to add to queue (Format: YYCCCXXXX): ");
+    String id = scanner.nextLine().trim().toUpperCase();
 
-        // Optional: check if patient exists in patientMap
-        if (!patientMap.contains(id)) {
-            System.out.println("No patient found with this ID.");
-            return;
-        }
-
-        patientQueue.enqueue(patientMap.get(id));
-        GenericDAO.saveToFile(patientQueue, patientQueueFile);
-        System.out.println("Patient " + id + " added to queue.");
+    // Validate format: 2 digits + 3 letters + 4 digits
+    if (!id.matches("\\d{2}[A-Z]{3}\\d{4}")) {
+        System.out.println("Invalid Patient ID format. Must be YYCCCXXXX.");
+        return;
     }
+
+    // Check if patient exists
+    if (!patientMap.contains(id)) {
+        System.out.println("No patient found with this ID.");
+        return;
+    }
+
+    // 🚫 Prevent duplicate in queue
+    if (walkInQueueMap.contains(id)) {
+        System.out.println("Patient " + id + " is already in the queue.");
+        return;
+    }
+
+    Patient patient = patientMap.get(id);
+
+    // Enter Purpose of Visit (no validation)
+    System.out.print("Enter Purpose of Visit: ");
+    String purpose = scanner.nextLine().trim();
+
+    // Assign Doctor (letters and spaces only)
+    String doctor;
+    while (true) {
+        System.out.print("Assign Doctor Name: ");
+        doctor = scanner.nextLine().trim();
+        if (doctor.matches("[a-zA-Z ]+")) break;
+        System.out.println("Invalid input. Please enter letters only.");
+    }
+
+    // Assign Room Number (alphanumeric, e.g., R101)
+    String room;
+    while (true) {
+        System.out.print("Assign Room Number: ");
+        room = scanner.nextLine().trim();
+        if (room.matches("[a-zA-Z0-9]+")) break;
+        System.out.println("Invalid input. Please enter letters and/or digits only.");
+    }
+
+    // Create WalkInQueueEntry
+    WalkInQueueEntry entry = new WalkInQueueEntry(patient, purpose, doctor, room);
+
+    // Add to map to store additional info
+    walkInQueueMap.add(patient.getPatientId(), entry);
+
+    // Enqueue patient only (queue stores Patient objects)
+    patientQueue.enqueue(patient);
+
+    // Save
+    GenericDAO.saveToFile(patientQueue, patientQueueFile);
+
+    System.out.println("Patient " + id + " added to queue with Purpose: " + purpose +
+                       ", Doctor: " + doctor + ", Room: " + room);
+}
+
+
 
     // ---------------- Delete Queue Entry Module ---------------- //
-
-    public void deleteQueueEntry() {
-        if (patientQueue.isEmpty()) {
-            System.out.println("The queue is empty. Nothing to delete.");
-            return;
-        }
-
-        boolean invalid;
-        do {
-            invalid = false;
-            viewQueueEntries();
-            System.out.println("\nPatient at front of the queue: " + patientQueue.peek().getPatientId());
-
-            System.out.print("\nConfirm to dequeue this patient? (Y/N): ");
-            char choice = scanner.nextLine().charAt(0);
-
-            switch (choice) {
-                case 'Y':
-                case 'y':
-                    Patient removedPatient = patientQueue.dequeue();
-                    GenericDAO.saveToFile(patientQueue, patientQueueFile);
-                    System.out.println("Patient " + removedPatient.getPatientId() + " removed from queue.");
-                    break;
-                case 'N':
-                case 'n':
-                    System.out.println("Removal cancelled.");
-                    break;
-                default:
-                    System.out.println("Invalid choice. Please try again.");
-                    invalid = true;
-            }
-        } while (invalid);
+public void deleteQueueEntry() {
+    if (patientQueue.isEmpty()) {
+        System.out.println("The queue is empty. Nothing to delete.");
+        return;
     }
 
-// ------------------ Payment Menu Valiidate Module ------------------ //
-public void handlePaymentMenu() {
+    System.out.print("Enter Patient ID to remove from queue: ");
+    String patientId = scanner.nextLine().trim();
+
+    boolean found = false;
+    QueueInterface<Patient> tempQueue = new ArrayQueue<>(30); // temp queue
+
+    while (!patientQueue.isEmpty()) {
+        Patient current = patientQueue.dequeue();
+        if (current.getPatientId().equalsIgnoreCase(patientId)) {
+            found = true;
+            // also remove from walkInQueueMap
+            walkInQueueMap.remove(patientId);
+            System.out.println("Patient " + patientId + " removed from queue.");
+        } else {
+            tempQueue.enqueue(current);
+        }
+    }
+
+    // restore queue
+    while (!tempQueue.isEmpty()) {
+        patientQueue.enqueue(tempQueue.dequeue());
+    }
+
+    if (found) {
+        GenericDAO.saveToFile(patientQueue, patientQueueFile);
+    } else {
+        System.out.println("Patient ID " + patientId + " does not exist in the queue.");
+    }
+}
+  // ------------------ Payment Menu Valiidate Module ------------------ //
+  public void handlePaymentMenu() {
     int choice;
     do {
         choice = patientUI.getPaymentMenu();
@@ -895,18 +937,16 @@ public void handlePaymentMenu() {
     } while (choice != 0);
 }
 
-  // ---------------- Generate Receipt Module ---------------- //
+    // ---------------- Generate Receipt Module ---------------- //
+    private void generateReceipt() {
+        Scanner sc = new Scanner(System.in); 
+        String patientId;
 
-
-private void generateReceipt() {
-    Scanner sc = new Scanner(System.in);
-    String patientId;
-
-    // Validate patient ID
+    // Validate patient ID 
     System.out.print("Enter Patient ID: ");
     patientId = sc.nextLine().trim().toUpperCase();
     if (!patientMap.contains(patientId)) {
-        System.out.println("Patient not found. Please enter a valid Patient ID.");
+        System.out.println("Patient ID not found. Please enter a valid Patient ID.");
         return;
     }
 
@@ -950,7 +990,7 @@ public void viewPaymentHistory() {
 
     // Ask user if they want to download
     while (true) {
-        System.out.print("\nDo you want to download this report as PNG? (Y/N): ");
+        System.out.print("\nDo you want to download this report ? (Y/N): ");
         String input = scanner.nextLine().trim().toLowerCase();
 
         if (input.equals("y") || input.equals("yes")) {

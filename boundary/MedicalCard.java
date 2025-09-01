@@ -45,25 +45,21 @@ int attempts = 0; // counter for invalid inputs
 final int MAX_ATTEMPTS = 5;
 
 while (true) {
-    System.out.print("Do you want to save this card as a PNG image? (yes/no): ");
+    System.out.print("Do you want to download TARUMT Medical Card ? (yes/no): ");
     choice = sc.nextLine().trim().toLowerCase();
 
     if (choice.equals("yes") || choice.equals("y")) {
         saveCardAsImage(patient);
         break;
     } else if (choice.equals("no") || choice.equals("n")) {
-        if (pm != null) {
-            pm.getPatientManagementMenu();
-        }
+        System.out.println("Returning to Patient Management Menu...");
         break;
     } else {
         attempts++;
         System.out.println("Invalid input. Please enter Yes or No. Attempt " + attempts + "/" + MAX_ATTEMPTS);
         if (attempts >= MAX_ATTEMPTS) {
             System.out.println("\nToo many invalid attempts! Returning to Patient Management Menu...");
-            if (pm != null) {
-                pm.getPatientManagementMenu();
-            }
+            System.out.println("Returning to Patient Management Menu...");
             break;
         }
     }
@@ -137,15 +133,12 @@ while (true) {
             }
             File file = new File(desktopDir, "MedicalCard_" + patient.getPatientId() + ".png");
             ImageIO.write(image, "png", file);
-            System.out.println(" Medical card saved at: " + file.getAbsolutePath());
+            System.out.println("Medical card saved at: " + file.getAbsolutePath());
         } catch (IOException e) {
             System.out.println(" Error saving image: " + e.getMessage());
         }
+        System.out.println("Returning to Patient Management Menu...");
 
-        // Return to menu after saving
-        if (pm != null) {
-            pm.getPatientManagementMenu();
-        }
     }
 
     /**

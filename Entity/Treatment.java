@@ -1,62 +1,53 @@
 
+//SH
 package Entity;
 
+import ADT.*;
 import java.io.Serializable;
 
-public class Treatment implements Serializable {
-	private String treatmentID;
-    private String patientID;
-    private String doctorID;
+public class Treatment implements Serializable{
+    private String treatmentID;
     private String diseaseName;
-    private String diseaseDesc;
+    private String symptoms;
     private String severity;
-    private String timeOfTreatment;  
-    private String treatmentProvided;
+    private String durationOfTreatment;  
+    private HashMap<String, Integer> treatmentProvided;
 
-public Treatment (String treatmentID, String patientID, String doctorID, String diseaseName, String diseaseDesc, String severity, String timeOfTreatment, String treatmentProvided) {
+public Treatment (String treatmentID, String diseaseName, String symptoms, String severity, HashMap<String, Integer> treatmentProvided, String durationOfTreatment) {
 	this.treatmentID = treatmentID;
-	this.patientID = patientID;
-	this.doctorID = doctorID;
 	this.diseaseName = diseaseName;
-	this.diseaseDesc = diseaseDesc;
+	this.symptoms = symptoms;
 	this.severity = severity;
-	this.timeOfTreatment = timeOfTreatment;
         this.treatmentProvided = treatmentProvided;
+	this.durationOfTreatment = durationOfTreatment;
+
 
 }
 
 public Treatment() {
- 	this("","","","","","","","");
+ 	this("","","","",new HashMap<String, Integer>(),"");
 }
 
 public String getTreatmentID(){
 	return treatmentID;
 }
 
-public String getPatientID(){
-	return patientID;
-}
-
-public String getDoctorID(){
-	return doctorID;
-}
-
 public String getDiseaseName(){
 	return diseaseName;
 }
-public String getDiseaseDesc(){
-	return diseaseDesc;
+public String getSymptoms(){
+	return symptoms;
 }
 
 public String getSeverity(){
 	return severity;
 }
 
-public String getTimeOfTreatment(){
-	return timeOfTreatment;
+public String getdurationOfTreatment(){
+	return durationOfTreatment;
 }
 
-public String getTreatmentProvided(){
+public HashMap<String, Integer> getTreatmentProvided(){
 	return treatmentProvided;
 }
 
@@ -64,37 +55,45 @@ public void setTreatmentID(String treatmentID){
 	this.treatmentID = treatmentID;
 }
 
-public void setPatientID(String patientID){
-	this.patientID = patientID;
-}
-
-public void setDoctorID(String doctorID){
-	this.doctorID = doctorID;
-}
-
 public void setDiseaseName(String diseaseName){
 	this.diseaseName = diseaseName;
 }
-public void setDiseaseDesc(String diseaseDesc){
-	this.diseaseDesc = diseaseDesc;
+public void setSymptoms(String symptoms){
+	this.symptoms = symptoms;
 }
 
 public void setSeverity(String severity){
 	this.severity = severity;
 }
 
-public void setTimeOfTreatment(String timeOfTreatment){
-	this.timeOfTreatment = timeOfTreatment;
+public void setDurationOfTreatment(String durationOfTreatment){
+	this.durationOfTreatment = durationOfTreatment;
 }
 
-public void setTreatmentProvided(String treatmentProvided){
+public void setTreatmentProvided(HashMap<String, Integer> treatmentProvided){
 	this.treatmentProvided = treatmentProvided;
 }
 
 public String toString() {
-	return "Treatment ID: " + treatmentID + "/nPatient ID: " + patientID + "/nDoctor in Charge: " + doctorID
-                + "/nDisease: " + diseaseName + "/nTreatment Provided" + treatmentProvided 
-                + "/nTime Administered:"  + timeOfTreatment;
+       StringBuilder meds = new StringBuilder();
+       StringBuilder amounts = new StringBuilder();
+
+        for (int i = 0; i < treatmentProvided.size(); i++) {
+             String med = treatmentProvided.getKey(i);       
+             int amt = treatmentProvided.getValue(i);        
+
+             meds.append(med);
+             amounts.append(amt);
+
+            if (i < treatmentProvided.size() - 1) {
+            meds.append(", ");
+             amounts.append(", ");
+    }
+}
+
+return String.format("%-14s %-20s %-30s %-12s %-30s %-20s %-18s",
+                     treatmentID, diseaseName, symptoms, severity,
+                     meds.toString(), amounts.toString(), durationOfTreatment);
 
     }
 }

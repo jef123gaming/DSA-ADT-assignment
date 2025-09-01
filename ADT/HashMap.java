@@ -289,6 +289,44 @@ public class HashMap<K, V> implements MapInterface<K, V>, Serializable {
     public MapEntry<K, V>[] getTable() {
         return table;
     }
+
+    @Override
+    public K getKey(int index) {
+    if (index < 0 || index >= size) {
+        throw new IndexOutOfBoundsException("Index " + index + " is out of bounds");
+    }
+
+    int count = -1; 
+    for (MapEntry<K, V> entry : table) {
+        if (entry != null && !entry.isRemoved()) {
+            count++;
+            if (count == index) {
+                return entry.getKey();
+            }
+        }
+    }
+
+    throw new IndexOutOfBoundsException("Index " + index + " is out of bounds");
+}
+    
+    @Override
+    public V getValue(int index) {
+    if (index < 0 || index >= size) {
+        throw new IndexOutOfBoundsException("Index " + index + " is out of bounds");
+    }
+
+    int count = -1; 
+    for (MapEntry<K, V> entry : table) {
+        if (entry != null && !entry.isRemoved()) {
+            count++;
+            if (count == index) {
+                return entry.getValue();
+            }
+        }
+    }
+
+    throw new IndexOutOfBoundsException("Index " + index + " is out of bounds");
+}
     
     public ListInterface<V> convertToMyList() {
         ListInterface<V> list = new MyList<>();

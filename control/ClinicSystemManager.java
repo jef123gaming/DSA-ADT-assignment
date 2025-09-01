@@ -16,6 +16,11 @@ public class ClinicSystemManager {
         PatientControl patientControl = new PatientControl(patientUI);
         DoctorManager doctorManager = new DoctorManager();
         ConsultationUI consultationUI = new ConsultationUI();
+        PharmacyManager pharmacyManager = new PharmacyManager();    
+        PharmacyUI pharmacyUI = new PharmacyUI(pharmacyManager);
+        TreatmentCtrl treatmentCtrl = new TreatmentCtrl(pharmacyManager);
+        TreatmentBoundary treatmentBoundary = new TreatmentBoundary(treatmentCtrl);
+
         Scanner scanner = new Scanner(System.in);
         
 

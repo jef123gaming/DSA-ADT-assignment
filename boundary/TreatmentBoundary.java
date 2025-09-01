@@ -1,4 +1,5 @@
-package ADT;
+//SH
+package boundary;
 
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
@@ -11,7 +12,10 @@ package ADT;
  */
 
 import java.util.Scanner;
-import ADT.Treatment;
+import Entity.Treatment;
+import control.TreatmentCtrl;
+import ADT.*;
+
 public class TreatmentBoundary {
 
     private static int treatmentID = 1000;
@@ -26,11 +30,15 @@ public class TreatmentBoundary {
     public void start() {
         int choice = -1;
         do {
-            System.out.println("=== Medical Treatment Management ===");
+            System.out.println("\n=============================================");
+            System.out.println("===      MEDICAL TREATMENT MANAGEMENT     ===");
+            System.out.println("=============================================");
             System.out.println("1. Add Treatment Type");
             System.out.println("2. Remove Treatment Type");
-            System.out.println("3. View Treatment Type");
-            System.out.println("4. View All Current Available Treatments");
+            System.out.println("3. Assign Treatment to Patient");
+            System.out.println("4. Search for Treatment");
+            System.out.println("5. View All Current Available Treatments");
+            System.out.println("6. View All Current Assigned Treatments to Patient");
             System.out.println("0. Exit");
             System.out.print("Enter choice: ");
             
@@ -49,10 +57,16 @@ public class TreatmentBoundary {
                     removeTreatmentUI();
                     break;
                 case 3:
-                    viewDiseaseUI();
+                    assignTreatmentUI();
                     break;
                 case 4:
-                    control.printAllTreatmentsSummary();
+                    viewDiseaseUI();
+                    break;
+                case 5:
+                    displayAllTreatmentSummary();
+                    break;
+                case 6:
+                    displayAllAssignedTreatment();
                     break;
                 case 0:
                     System.out.println("\nExiting module...");
@@ -70,9 +84,11 @@ public class TreatmentBoundary {
         String disease;
         String symptoms;
         String severity;
-        String medicines;
+        HashMap<String, Integer> medicines = new HashMap<>();
+        int amount = 0;
         int duration = 0;
         String formatDuration = "";
+        
         
         do{
         System.out.print("Enter Disease Name: ");
@@ -82,6 +98,7 @@ public class TreatmentBoundary {
             }
         }
         while (disease.isEmpty());  
+        disease = disease.intern();
 
         do{
         System.out.print("Enter Symptoms: ");
@@ -106,13 +123,49 @@ public class TreatmentBoundary {
         }
         while(severity.isEmpty());
 
-        do{
-        System.out.print("Enter Medicines / Treatments to be Provided: ");
-        medicines = scanner.nextLine().trim();
-         if(medicines.isEmpty()){
-            System.out.println("Medicines / Treatments Cannot be Empty. Please try again");
+
+        System.out.println("Enter Medicines / Treatments (type '-' when finished):");
+        while (true) {
+        System.out.print("Medicine: ");
+        String medicineValue = scanner.nextLine().trim();
+        if (medicineValue.equalsIgnoreCase("-")) break;
+        
+        if(medicineValue.isEmpty()){
+            System.out.println("Medicine cannot be empty. Please try again.");
+            continue;
         }
-        }while(medicines.isEmpty());
+        
+        while(true){
+        System.out.print("Amount of Medicine (Per Day): ");
+        String amountInput = scanner.nextLine().trim();
+            if (amountInput.isEmpty()) {
+                System.out.println("Amount cannot be empty. Please try again.");
+                continue;
+                }   
+
+            try {
+                amount = Integer.parseInt(amountInput);
+
+                if (amount <= 0) {
+                    System.out.println("Amount must be greater than 0. Please try again.");
+                 continue;
+                }
+
+                if (amount > 10) {
+                    System.out.println("Amount cannot exceed 10. Please try again.");
+                    continue;
+                }
+                 break;
+
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid number. Please enter a valid integer.");
+                
+            }
+        }
+            medicines.add(medicineValue,amount);
+            
+        
+}
 
         while (true) {
         System.out.print("Enter Duration of Treatment (Days): ");
@@ -140,18 +193,42 @@ public class TreatmentBoundary {
 
     private void removeTreatmentUI() {
         System.out.print("Enter treatment to remove: ");
-        String treatment = scanner.nextLine();
+        String treatment = scanner.nextLine().trim();
         if (control.removeTreatment(treatment)) {
             System.out.println("Treatment removed successfully!");
         } else {
             System.out.println("Treatment not found.");
         }
     }
+    
+    private void assignTreatmentUI(){
+        String disease;
+        String patientID;
+        while(true){
+        System.out.print("Enter Patient ID: ");
+        patientID = scanner.nextLine().trim();
+        if(patientID.isEmpty()){
+            System.out.println("Patient ID cannot be empty");
+            continue;
+        }
+        System.out.print("Enter Disease to be Assigned: ");
+        disease = scanner.nextLine().trim();
+        if(disease.isEmpty()){
+            System.out.println("Disease Name cannot be empty");
+            continue;
+        }
+        else
+            break;
+        }
+        control.assignTreatmentToPatient(patientID, disease);
+        System.out.println("Treatment Assigned Successfully");
+    }
 
     private void viewDiseaseUI() {
         System.out.print("Enter Disease Name: ");
-        String disease = scanner.nextLine();
-        TreatmentList<Treatment> diseaseType = control.getTreatmentDesc(disease);
+        String disease = scanner.nextLine().trim();
+        disease = disease.intern();
+        MyList<Treatment> diseaseType = control.getTreatmentDesc(disease);
         if (diseaseType == null || diseaseType.isEmpty()) {
             System.out.println("No Treatment Type found: " + disease);
         } else {
@@ -159,12 +236,63 @@ public class TreatmentBoundary {
             System.out.printf("%-14s %-20s %-30s %-12s %-30s %-18s",
                             "TreatmentID", "Disease Name", "Symptoms", "Severity", "Medication / Treatment", "Duration (Days)");
             System.out.println("\n====================================================================================================================================");
-            for (int i = 1; i <= diseaseType.size(); i++) {
-                System.out.println(diseaseType.get(i));
-            }
-        }
+           for (int i = 0; i < diseaseType.size(); i++) {  // 0-based index
+        Treatment t = diseaseType.get(i);
+           if (t != null) {
+               String meds = "";
+                    for (int j = 0; j < t.getTreatmentProvided().size(); j++) {
+                        meds += t.getTreatmentProvided().getValue(j);
+                    if (j < t.getTreatmentProvided().size() - 1) meds += ", ";
+                     }
+        System.out.printf("%-14s %-20s %-30s %-12s %-30s %-18s\n",
+                          t.getTreatmentID(), t.getDiseaseName(), t.getSymptoms(),
+                          t.getSeverity(), meds, t.getdurationOfTreatment());
+        System.out.println("\n");
     }
 }
+        }
+    }
+    
+    public void displayAllTreatmentSummary() {
+    MyList<Treatment> allTreatments = control.getAllTreatments();
+
+    if (allTreatments.isEmpty()) {
+        System.out.println("No treatments available.");
+        return;
+    }
+
+    System.out.printf("%-14s %-20s %-30s %-12s %-30s %-20s %-18s\n",
+            "TreatmentID","Disease", "Symptoms", "Severity",
+            "Medication / Treatment","Amount (PerDay)", "Duration");
+    System.out.println("======================================================================================================================================");
+
+        for (int i = 0; i < allTreatments.size(); i++) {
+            Treatment t = allTreatments.get(i);
+            System.out.println(t);
+        }
+        
+    }
+    
+    public void displayAllAssignedTreatment(){
+        MyList<TreatmentCtrl.TreatmentInfo> allAssignedPatientInfo = control.getAllAssignedPatient();
+        
+        if(allAssignedPatientInfo.isEmpty()){
+            System.out.println("No Patient Assigned");
+            System.out.println("===================");
+            return;
+        }
+        System.out.printf("%-14s %-20s %-30s %-20s %-18s", 
+                "PatientID", "Disease", "Medication / Treatment", "Amount (PerDay)", "Duration");
+        System.out.println("\n====================================================================================================================");
+
+        for (int i = 0; i < allAssignedPatientInfo.size(); i++) {
+            System.out.println(allAssignedPatientInfo.get(i));
+}
+
+    }
+}
+
+
 
 
 

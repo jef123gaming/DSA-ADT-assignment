@@ -17,6 +17,8 @@ public interface MapInterface<K, V> {
     int size();
     boolean resize(int length);
     MapEntry<K, V>[] getTable();
+    K getKey(int index);
+    V getValue(int index);
     K findLargestKey();
     boolean isEmpty();
     ListInterface<V> convertToMyList();

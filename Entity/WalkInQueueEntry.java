@@ -1,3 +1,5 @@
+//Author: Koo Jing Yik
+
 package Entity;
 
 import java.io.Serializable;
@@ -44,3 +46,4 @@ public class WalkInQueueEntry implements Serializable {
         this.roomNumber = roomNumber;
     }
 }
+

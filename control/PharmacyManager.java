@@ -8,7 +8,8 @@ import Entity.Patient;
 import Entity.Doctor;
 import ADT.ArrayQueue;
 import ADT.MapInterface;
-import java.util.ArrayList;
+import ADT.MyList;
+import java.util.MyList;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -177,8 +178,8 @@ public class PharmacyManager {
         }
     }
 
-    public ArrayList<DispenseOrder> getAllDispenseOrders() {
-        ArrayList<DispenseOrder> list = new ArrayList<>();
+    public MyList<DispenseOrder> getAllDispenseOrders() {
+        MyList<DispenseOrder> list = new MyList<>();
         for (int i = 0; i < dispenseQueue.size(); i++) {
             list.add(dispenseQueue.get(i));
         }

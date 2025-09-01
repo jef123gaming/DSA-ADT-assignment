@@ -1,3 +1,5 @@
+//Author: Koo Jing Yik
+
 package Entity;
 
 import java.io.Serializable;

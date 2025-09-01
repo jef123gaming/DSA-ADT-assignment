@@ -1,7 +1,7 @@
-package app;
+package TestRunPatientMenu.app;
 
-import boundary.OldPatientUI;
-import control.OldPatientControl;
+import boundary.PatientUI;
+import control.PatientControl;
 
 import java.util.Scanner;
 
@@ -9,8 +9,8 @@ public class MainApp {
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-        OldPatientUI patientUI = new OldPatientUI();
-        OldPatientControl patientControl = new OldPatientControl(patientUI);
+        PatientUI patientUI = new PatientUI();
+        PatientControl patientControl = new PatientControl(patientUI);
 
         boolean exit = false;
 
@@ -23,69 +23,14 @@ public class MainApp {
                     break;
 
                 case 2: // Edit patient record
-                    boolean recordExit = false;
-                    while (!recordExit) {
-                        int recordChoice = patientUI.getPatientRecordMenu();
-                        switch (recordChoice) {
-                            case 1: // View
-                                System.out.print("Enter Patient ID to view: ");
-                                patientControl.listAllPatients();
-                                break;
-                            case 2: // Search
-                                System.out.print("Enter Patient ID to search: ");
-                                String viewId = scanner.nextLine().trim();
-                                patientControl.searchPatient(viewId);
-                                break;    
-                            case 3: // Update
-                                System.out.print("Enter Patient ID to update: ");
-                                String updateId = scanner.nextLine().trim();
-                                patientControl.updatePatientField(updateId);
-                                break;
-                            case 4: // Delete
-                                System.out.print("Enter Patient ID to delete: ");
-                                String delId = scanner.nextLine().trim();
-                                patientControl.deletePatient(delId);
-                                break;
-                            case 0: // Back
-                                recordExit = true;
-                                break;
-                            default:
-                                System.out.println("Invalid choice.");
-                        }
-                    }
+                    patientControl.handlePatientRecordMenu();
                     break;
-
                 case 3: // Walk-in patient queue
-                    boolean queueExit = false;
-                    while (!queueExit) {
-                        int queueChoice = patientUI.getQueueEntryMenu(); 
-                        switch (queueChoice) {
-                            case 1: // Add Queue Entry
-                                patientControl.addQueueEntry();
-                                break;
-                            case 2: // View Queue Entries
-                                patientControl.viewQueueEntries();
-                                break;
-                            case 3: // Delete Queue Entry
-                                patientControl.deleteQueueEntry();
-                                break;
-                            case 0: // Return to previous menu
-                                queueExit = true;
-                                break;
-                            default:
-                                System.out.println("Invalid choice.");
-                        }
-                    }
+                    patientControl.handleQueueMenu();
                     break;
-
-                case 4: // Appointment
-                    patientControl.handleAppointmentMenu();
-                    break;
-
-                case 5: // Payment
+                case 4: // Payment
                     patientControl.handlePaymentMenu();                  
                     break;
-                
                 case 0: // Quit
                     System.out.println("Exiting system... Goodbye!");
                     exit = true;
